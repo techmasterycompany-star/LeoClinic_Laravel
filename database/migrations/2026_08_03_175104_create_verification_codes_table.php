@@ -19,6 +19,8 @@ return new class extends Migration
             ->constrained()
             ->cascadeOnDelete();
 
+        $table->string('type')->default('email_verification');
+
         $table->string('code');
 
         $table->timestamp('expires_at');

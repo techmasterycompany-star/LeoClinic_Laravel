@@ -9,13 +9,13 @@ class VerificationCode extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'code',
-        'expires_at',
-        'is_used',
-    ];
-
+   protected $fillable = [
+    'user_id',
+    'type',
+    'code',
+    'expires_at',
+    'is_used',
+];
     protected $casts = [
         'expires_at' => 'datetime',
         'is_used' => 'boolean',
