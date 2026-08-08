@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Admin\LocationController;
 use App\Http\Controllers\Api\Admin\SpecialtyController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -33,6 +34,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('/specialties', [SpecialtyController::class, 'store']);
     Route::put('/specialties/{specialty}', [SpecialtyController::class, 'update']);
     Route::delete('/specialties/{specialty}', [SpecialtyController::class, 'destroy']);
+
+    Route::get('/locations', [LocationController::class, 'index']);
+    Route::post('/locations', [LocationController::class, 'store']);
+    Route::put('/locations/{location}', [LocationController::class, 'update']);
+    Route::delete('/locations/{location}', [LocationController::class, 'destroy']);
 
 });
 
