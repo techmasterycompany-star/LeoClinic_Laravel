@@ -89,6 +89,13 @@ try {
 
     }
 
+    if ($user->is_blocked) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Your account is blocked.',
+        ], 403);
+    }
+
     $token = $user->createToken('auth_token')->plainTextToken;
 
     return response()->json([
