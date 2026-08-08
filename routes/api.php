@@ -3,8 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Admin\AdminUserController;
+use App\Http\Controllers\Api\Admin\DoctorApprovalController;
 use App\Http\Controllers\Api\Admin\LocationController;
+use App\Http\Controllers\Api\Admin\PatientApprovalController;
 use App\Http\Controllers\Api\Admin\SpecialtyController;
+use App\Http\Controllers\Api\Admin\UserBlockController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -39,6 +43,20 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('/locations', [LocationController::class, 'store']);
     Route::put('/locations/{location}', [LocationController::class, 'update']);
     Route::delete('/locations/{location}', [LocationController::class, 'destroy']);
+
+    Route::get('/doctors/pending', [DoctorApprovalController::class, 'pending']);
+    Route::patch('/doctors/{doctorProfile}/approve', [DoctorApprovalController::class, 'approve']);
+    Route::patch('/doctors/{doctorProfile}/reject', [DoctorApprovalController::class, 'reject']);
+
+    Route::get('/patients/pending', [PatientApprovalController::class, 'pending']);
+    Route::patch('/patients/{patientProfile}/approve', [PatientApprovalController::class, 'approve']);
+    Route::patch('/patients/{patientProfile}/reject', [PatientApprovalController::class, 'reject']);
+
+    Route::patch('/users/{user}/block', [UserBlockController::class, 'block']);
+    Route::patch('/users/{user}/unblock', [UserBlockController::class, 'unblock']);
+    Route::patch('/users/{user}/status', [UserBlockController::class, 'updateStatus']);
+
+    Route::get('/users', [AdminUserController::class, 'index']);
 
 });
 

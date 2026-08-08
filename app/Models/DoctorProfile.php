@@ -15,7 +15,12 @@ class DoctorProfile extends Model
         'price',
         'bio',
         'contact_number',
+        'professional_license',
         'is_approved',
+    ];
+
+    protected $casts = [
+        'is_approved' => 'boolean',
     ];
 
     public function user()
