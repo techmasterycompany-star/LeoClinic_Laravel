@@ -40,4 +40,5 @@ Route::prefix('doctor')
 
         Route::get('/profile', [DoctorProfileController::class, 'show']);
         Route::post('/profile', [DoctorProfileController::class, 'store']);
+        Route::put('/profile', [DoctorProfileController::class, 'update']);
     });

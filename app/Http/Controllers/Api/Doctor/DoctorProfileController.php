@@ -61,6 +61,7 @@ class DoctorProfileController extends Controller
             'contact_number' => $validated['contact_number'],
         ];
 
+        // Professional License
         if ($request->hasFile('professional_license')) {
 
             $file = $request->file('professional_license');
@@ -77,6 +78,7 @@ class DoctorProfileController extends Controller
             $data['professional_license'] = $fileName;
         }
 
+        // Profile Image
         if ($request->hasFile('profile_image')) {
 
             $image = $request->file('profile_image');
@@ -98,6 +100,87 @@ class DoctorProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Doctor profile completed successfully.',
+            'data' => $doctorProfile->fresh()->load('specialty'),
+        ]);
+    }
+
+    public function update(Request $request): JsonResponse
+    {
+        $doctorProfile = $request->user()->doctorProfile;
+
+        if (!$doctorProfile) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Doctor profile not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'specialty_id' => 'sometimes|exists:specialties,id',
+            'price' => 'sometimes|numeric|min:0',
+            'bio' => 'sometimes|nullable|string',
+            'contact_number' => 'sometimes|nullable|string|max:20',
+
+            'professional_license' =>
+                'sometimes|nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+
+            'profile_image' =>
+                'sometimes|nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        $data = [
+            'specialty_id' => $validated['specialty_id']
+                ?? $doctorProfile->specialty_id,
+
+            'price' => $validated['price']
+                ?? $doctorProfile->price,
+
+            'bio' => $validated['bio']
+                ?? $doctorProfile->bio,
+
+            'contact_number' => $validated['contact_number']
+                ?? $doctorProfile->contact_number,
+        ];
+
+        // Update Professional License
+        if ($request->hasFile('professional_license')) {
+
+            $file = $request->file('professional_license');
+
+            $fileName = uniqid('license_') . '.'
+                . $file->getClientOriginalExtension();
+
+            $file->storeAs(
+                'professional_licenses',
+                $fileName,
+                'public'
+            );
+
+            $data['professional_license'] = $fileName;
+        }
+
+        // Update Profile Image
+        if ($request->hasFile('profile_image')) {
+
+            $image = $request->file('profile_image');
+
+            $imageName = uniqid('profile_') . '.'
+                . $image->getClientOriginalExtension();
+
+            $image->storeAs(
+                'profile_images',
+                $imageName,
+                'public'
+            );
+
+            $data['profile_image'] = $imageName;
+        }
+
+        $doctorProfile->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Doctor profile updated successfully.',
             'data' => $doctorProfile->fresh()->load('specialty'),
         ]);
     }
