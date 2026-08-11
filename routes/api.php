@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Doctor\DoctorProfileController;
+use App\Http\Controllers\Api\Doctor\DoctorLocationController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -41,4 +42,8 @@ Route::prefix('doctor')
         Route::get('/profile', [DoctorProfileController::class, 'show']);
         Route::post('/profile', [DoctorProfileController::class, 'store']);
         Route::put('/profile', [DoctorProfileController::class, 'update']);
+
+        Route::get('/locations', [DoctorLocationController::class, 'index']);
+        Route::post('/locations', [DoctorLocationController::class, 'store']);
+        Route::delete('/locations/{doctorLocation}', [DoctorLocationController::class, 'destroy']);
     });
