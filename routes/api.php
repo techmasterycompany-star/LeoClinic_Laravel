@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Doctor\DoctorProfileController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -26,3 +27,17 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 });
+
+/*
+|--------------------------------------------------------------------------
+| Doctor Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('doctor')
+    ->middleware(['auth:sanctum', 'role:doctor'])
+    ->group(function () {
+
+        Route::get('/profile', [DoctorProfileController::class, 'show']);
+        Route::post('/profile', [DoctorProfileController::class, 'store']);
+    });

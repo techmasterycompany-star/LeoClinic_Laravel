@@ -24,10 +24,14 @@ return new class extends Migration
         $table->foreignId('specialty_id')
             ->constrained()
             ->cascadeOnDelete();
-
+            
         $table->text('bio')->nullable();
 
         $table->string('contact_number',20)->nullable();
+
+        $table->string('profile_image')->nullable();
+
+        $table->string('professional_license')->nullable();
 
         $table->boolean('is_approved')->default(false);
 
