@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class AppointmentController extends Controller
 {
-    
+   
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -85,5 +85,71 @@ class AppointmentController extends Controller
                 'message' => 'Something went wrong while booking the appointment.',
             ], 500);
         }
+    }
+
+    
+    public function index(Request $request): JsonResponse
+    {
+        $patient = $request->user()->patientProfile;
+
+        if (!$patient) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient profile not found.',
+            ], 404);
+        }
+
+        $query = Appointment::with(['doctor.user', 'doctor.specialty', 'availability'])
+            ->where('patient_id', $patient->id);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $appointments = $query->latest()->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'appointments' => $appointments,
+        ]);
+    }
+
+    
+    public function confirm(Request $request, int $id): JsonResponse
+    {
+        $doctor = $request->user()->doctorProfile;
+
+        if (!$doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Doctor profile not found.',
+            ], 404);
+        }
+
+        $appointment = Appointment::where('id', $id)
+            ->where('doctor_id', $doctor->id)
+            ->first();
+
+        if (!$appointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Appointment not found.',
+            ], 404);
+        }
+
+        if ($appointment->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => "Only pending appointments can be confirmed. Current status: {$appointment->status}.",
+            ], 422);
+        }
+
+        $appointment->update(['status' => 'confirmed']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Appointment confirmed successfully.',
+            'data' => $appointment->load(['patient.user', 'availability']),
+        ]);
     }
 }
