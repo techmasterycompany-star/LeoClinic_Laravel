@@ -31,7 +31,6 @@ class AppointmentController extends Controller
         DB::beginTransaction();
 
         try {
-            
             $availability = Availability::where('id', $data['availability_id'])
                 ->lockForUpdate()
                 ->first();
@@ -85,5 +84,32 @@ class AppointmentController extends Controller
                 'message' => 'Something went wrong while booking the appointment.',
             ], 500);
         }
+    }
+
+   
+    public function index(Request $request): JsonResponse
+    {
+        $patient = $request->user()->patientProfile;
+
+        if (!$patient) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient profile not found.',
+            ], 404);
+        }
+
+        $query = Appointment::with(['doctor.user', 'doctor.specialty', 'availability'])
+            ->where('patient_id', $patient->id);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $appointments = $query->latest()->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'appointments' => $appointments,
+        ]);
     }
 }

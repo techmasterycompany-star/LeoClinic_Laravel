@@ -41,4 +41,6 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
 
     Route::post('/appointments', [AppointmentController::class, 'store']);
 
+    Route::get('/appointments', [AppointmentController::class, 'index']);
+
 });
