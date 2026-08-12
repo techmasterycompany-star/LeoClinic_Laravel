@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\PaymentController;
 
 
 
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -173,35 +174,11 @@ Route::middleware('auth:sanctum')
         Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
     });
 
-
-
-
-Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
-    Route::get('/profile', [PatientProfileController::class, 'show']);
-    Route::put('/profile', [PatientProfileController::class, 'update']);
-
-    Route::get('/doctors', [DoctorController::class, 'index']);
-    Route::get('/doctors/{id}', [DoctorController::class, 'show']);
-    Route::get('/doctors/{id}/reviews', [DoctorController::class, 'reviews']);
-
-
-    Route::post('/appointments', [AppointmentController::class, 'store']);
-    Route::get('/appointments', [AppointmentController::class, 'index']);
-
-    
-    Route::post('/appointments/{id}/rating', [RatingController::class, 'store']);
-});
-
-
-Route::middleware('auth:sanctum')->prefix('doctor')->group(function () {
-    Route::put('/appointments/{id}/confirm', [AppointmentController::class, 'confirm']);
-    Route::put('/appointments/{id}/reject', [AppointmentController::class, 'reject']);
-    Route::put('/appointments/{id}/complete', [AppointmentController::class, 'complete']);
-
- 
-    Route::get('/{doctorId}/average-rating', [RatingController::class, 'averageRating']);
-});
-
+/*
+|--------------------------------------------------------------------------
+| Payment Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::prefix('payments')
     ->middleware(['auth:sanctum', 'role:patient'])
