@@ -134,4 +134,6 @@ Route::middleware('auth:sanctum')->prefix('doctor')->group(function () {
 
     Route::put('/appointments/{id}/confirm', [AppointmentController::class, 'confirm']);
 
+    Route::put('/appointments/{id}/reject', [AppointmentController::class, 'reject']);
+
 });
