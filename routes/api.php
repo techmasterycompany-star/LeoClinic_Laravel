@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PatientProfileController;
 use App\Http\Controllers\Api\DoctorController;
+use App\Http\Controllers\Api\AppointmentController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -37,5 +38,7 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
     Route::get('/doctors', [DoctorController::class, 'index']);
 
     Route::get('/doctors/{id}', [DoctorController::class, 'show']);
+
+    Route::post('/appointments', [AppointmentController::class, 'store']);
 
 });
