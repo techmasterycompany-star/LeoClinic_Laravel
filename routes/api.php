@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PatientProfileController;
+use App\Http\Controllers\Api\DoctorController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -32,5 +33,7 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
     Route::get('/profile', [PatientProfileController::class, 'show']);
 
     Route::put('/profile', [PatientProfileController::class, 'update']);
+
+    Route::get('/doctors', [DoctorController::class, 'index']);
 
 });
