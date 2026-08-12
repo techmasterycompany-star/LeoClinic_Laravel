@@ -36,4 +36,6 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
 
     Route::get('/doctors', [DoctorController::class, 'index']);
 
+    Route::get('/doctors/{id}', [DoctorController::class, 'show']);
+
 });
