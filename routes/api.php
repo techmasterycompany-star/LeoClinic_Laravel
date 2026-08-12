@@ -19,6 +19,8 @@ use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PaymentController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -201,3 +203,9 @@ Route::middleware('auth:sanctum')->prefix('doctor')->group(function () {
 });
 
 
+Route::prefix('payments')
+    ->middleware(['auth:sanctum', 'role:patient'])
+    ->group(function () {
+        Route::post('/', [PaymentController::class, 'store']);
+        Route::get('/', [PaymentController::class, 'index']);
+    });
