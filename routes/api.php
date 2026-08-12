@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PaymentController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -26,3 +27,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 });
+Route::prefix('payments')
+    ->middleware(['auth:sanctum', 'role:patient'])
+    ->group(function () {
+        Route::get('/', [PaymentController::class, 'index']);
+    });
