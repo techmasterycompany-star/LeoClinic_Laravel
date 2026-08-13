@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\NotificationController;
 |--------------------------------------------------------------------------
 */
 
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -134,7 +135,6 @@ Route::middleware('auth:sanctum')
 
         Route::post('/appointments/{id}/rating', [RatingController::class, 'store']);
     });
-
 /*
 |--------------------------------------------------------------------------
 | Doctor Appointment Actions
@@ -169,9 +169,7 @@ Route::middleware('auth:sanctum')
         Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
     });
 
-Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
-});
+
+
