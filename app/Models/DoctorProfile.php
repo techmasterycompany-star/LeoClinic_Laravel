@@ -20,6 +20,11 @@ class DoctorProfile extends Model
     'is_approved',
 ];
 
+
+    protected $casts = [
+        'is_approved' => 'boolean',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

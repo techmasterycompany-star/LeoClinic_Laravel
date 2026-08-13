@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Doctor\ScheduleController;
 
 
 
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -44,6 +45,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/verify-reset-code', [AuthController::class, 'verifyResetCode']);
 
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
 });
 
 
