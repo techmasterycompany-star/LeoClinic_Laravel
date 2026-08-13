@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Doctor\ScheduleController;
 |--------------------------------------------------------------------------
 */
 
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -111,4 +112,5 @@ Route::prefix('doctor')
         Route::delete('/availabilities/{availability}', [AvailabilityController::class, 'destroy']);
 
         Route::get('/schedule', [ScheduleController::class, 'index']);
+
     });
