@@ -31,7 +31,6 @@ class AppointmentController extends Controller
         DB::beginTransaction();
 
         try {
-           
             $availability = Availability::where('id', $data['availability_id'])
                 ->lockForUpdate()
                 ->first();
@@ -87,7 +86,7 @@ class AppointmentController extends Controller
         }
     }
 
-    
+   
     public function index(Request $request): JsonResponse
     {
         $patient = $request->user()->patientProfile;
@@ -206,7 +205,6 @@ class AppointmentController extends Controller
             ], 404);
         }
 
-        
         $isOwningPatient = $user->patientProfile && $appointment->patient_id === $user->patientProfile->id;
         $isOwningDoctor = $user->doctorProfile && $appointment->doctor_id === $user->doctorProfile->id;
 
@@ -233,6 +231,45 @@ class AppointmentController extends Controller
             'success' => true,
             'message' => 'Appointment cancelled successfully.',
             'data' => $appointment->fresh()->load(['patient.user', 'doctor.user', 'availability']),
+        ]);
+    }
+
+    
+    public function complete(Request $request, int $id): JsonResponse
+    {
+        $doctor = $request->user()->doctorProfile;
+
+        if (!$doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Doctor profile not found.',
+            ], 404);
+        }
+
+        $appointment = Appointment::where('id', $id)
+            ->where('doctor_id', $doctor->id)
+            ->first();
+
+        if (!$appointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Appointment not found.',
+            ], 404);
+        }
+
+        if ($appointment->status !== 'confirmed') {
+            return response()->json([
+                'success' => false,
+                'message' => "Only confirmed appointments can be completed. Current status: {$appointment->status}.",
+            ], 422);
+        }
+
+        $appointment->update(['status' => 'completed']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Appointment marked as completed.',
+            'data' => $appointment->load(['patient.user', 'availability']),
         ]);
     }
 }
