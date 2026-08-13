@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Doctor\DoctorLocationController;
 use App\Http\Controllers\Api\Doctor\AvailabilityController;
 use App\Http\Controllers\Api\Doctor\ScheduleController;
 use App\Http\Controllers\Api\PatientProfileController;
+use App\Http\Controllers\Api\DoctorController;
 
 
 /*
@@ -126,5 +127,5 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
 
     Route::get('/profile', [PatientProfileController::class, 'show']);
     Route::put('/profile', [PatientProfileController::class, 'update']);
-
+    Route::get('/doctors', [DoctorController::class, 'index']);
 });
