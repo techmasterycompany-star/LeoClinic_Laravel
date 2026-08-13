@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
     Route::put('/profile', [PatientProfileController::class, 'update']);
     Route::get('/doctors', [DoctorController::class, 'index']);
     Route::get('/doctors/{id}', [DoctorController::class, 'show']);
+    Route::get('/doctors/{id}/reviews', [DoctorController::class, 'reviews']);
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/appointments', [AppointmentController::class, 'index']);
     Route::post('/appointments/{id}/rating', [RatingController::class, 'store']);
