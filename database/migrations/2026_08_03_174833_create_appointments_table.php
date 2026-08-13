@@ -36,16 +36,10 @@ return new class extends Migration
 
         $table->text('reason')->nullable();
 
+        $table->enum('cancelled_by', ['doctor', 'patient'])
+            ->nullable();
+
         $table->timestamps();
     });
-
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('appointments');
-    }
+}
 };

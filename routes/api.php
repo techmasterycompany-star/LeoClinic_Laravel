@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AppointmentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -26,3 +27,4 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 });
+Route::middleware('auth:sanctum')->put('/appointments/{id}/cancel', [AppointmentController::class, 'cancel']);
