@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PatientProfileController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\RatingController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -28,6 +29,7 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
     Route::get('/doctors/{id}', [DoctorController::class, 'show']);
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/appointments', [AppointmentController::class, 'index']);
+    Route::post('/appointments/{id}/rating', [RatingController::class, 'store']);
 });
 
 Route::middleware('auth:sanctum')->prefix('doctor')->group(function () {
