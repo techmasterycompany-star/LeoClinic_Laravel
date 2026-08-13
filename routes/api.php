@@ -128,6 +128,7 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
 Route::middleware('auth:sanctum')->prefix('doctor')->group(function () {
     Route::put('/appointments/{id}/confirm', [AppointmentController::class, 'confirm']);
     Route::put('/appointments/{id}/reject', [AppointmentController::class, 'reject']);
+    Route::put('/appointments/{id}/complete', [AppointmentController::class, 'complete']);
 });
 
 
