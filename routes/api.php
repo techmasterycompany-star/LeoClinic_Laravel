@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Admin\UserBlockController;
 use App\Http\Controllers\Api\Doctor\DoctorLocationController;
 use App\Http\Controllers\Api\Doctor\AvailabilityController;
 use App\Http\Controllers\Api\Doctor\ScheduleController;
+use App\Http\Controllers\Api\PatientProfileController;
 
 
 /*
@@ -121,3 +122,9 @@ Route::prefix('doctor')
     });
 
 
+Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
+
+    Route::get('/profile', [PatientProfileController::class, 'show']);
+    Route::put('/profile', [PatientProfileController::class, 'update']);
+
+});
