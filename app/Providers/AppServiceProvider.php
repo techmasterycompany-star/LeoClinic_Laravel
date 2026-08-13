@@ -4,6 +4,10 @@ namespace App\Providers;
 
 use App\Mail\CustomMailManager;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Appointment;
+use App\Observers\AppointmentObserver;
+
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,5 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
             return new CustomMailManager($app);
         });
-    }
+    
+         Appointment::observe(AppointmentObserver::class);
+}
 }

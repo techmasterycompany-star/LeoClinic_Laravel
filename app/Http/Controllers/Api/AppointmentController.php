@@ -194,45 +194,49 @@ class AppointmentController extends Controller
 
     
     public function cancel(Request $request, int $id): JsonResponse
-    {
-        $user = $request->user();
+{
+    $user = $request->user();
 
-        $appointment = Appointment::with('availability')->find($id);
+    $appointment = Appointment::with('availability')->find($id);
 
-        if (!$appointment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Appointment not found.',
-            ], 404);
-        }
-
-        
-        $isOwningPatient = $user->patientProfile && $appointment->patient_id === $user->patientProfile->id;
-        $isOwningDoctor = $user->doctorProfile && $appointment->doctor_id === $user->doctorProfile->id;
-
-        if (!$isOwningPatient && !$isOwningDoctor) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You are not authorized to cancel this appointment.',
-            ], 403);
-        }
-
-        if (in_array($appointment->status, ['completed', 'cancelled', 'rejected'])) {
-            return response()->json([
-                'success' => false,
-                'message' => "This appointment can no longer be cancelled. Current status: {$appointment->status}.",
-            ], 422);
-        }
-
-        DB::transaction(function () use ($appointment) {
-            $appointment->update(['status' => 'cancelled']);
-            $appointment->availability?->update(['is_booked' => false]);
-        });
-
+    if (!$appointment) {
         return response()->json([
-            'success' => true,
-            'message' => 'Appointment cancelled successfully.',
-            'data' => $appointment->fresh()->load(['patient.user', 'doctor.user', 'availability']),
-        ]);
+            'success' => false,
+            'message' => 'Appointment not found.',
+        ], 404);
     }
+
+    $isOwningPatient = $user->patientProfile && $appointment->patient_id === $user->patientProfile->id;
+    $isOwningDoctor = $user->doctorProfile && $appointment->doctor_id === $user->doctorProfile->id;
+
+    if (!$isOwningPatient && !$isOwningDoctor) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You are not authorized to cancel this appointment.',
+        ], 403);
+    }
+
+    if (in_array($appointment->status, ['completed', 'cancelled', 'rejected'])) {
+        return response()->json([
+            'success' => false,
+            'message' => "This appointment can no longer be cancelled. Current status: {$appointment->status}.",
+        ], 422);
+    }
+
+    $cancelledBy = $isOwningDoctor ? 'doctor' : 'patient';
+
+    DB::transaction(function () use ($appointment, $cancelledBy) {
+        $appointment->update([
+            'status' => 'cancelled',
+            'cancelled_by' => $cancelledBy,
+        ]);
+        $appointment->availability?->update(['is_booked' => false]);
+    });
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Appointment cancelled successfully.',
+        'data' => $appointment->fresh()->load(['patient.user', 'doctor.user', 'availability']),
+    ]);
+}
 }
