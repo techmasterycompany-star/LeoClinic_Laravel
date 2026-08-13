@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Availability;
+use App\Models\UserNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,7 @@ class AppointmentController extends Controller
 
             if (!$availability) {
                 DB::rollBack();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Availability slot not found.',
@@ -45,6 +47,7 @@ class AppointmentController extends Controller
 
             if ($availability->is_booked) {
                 DB::rollBack();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'This slot is already booked.',
@@ -53,11 +56,14 @@ class AppointmentController extends Controller
 
             if ($availability->date->toDateString() < now()->toDateString()) {
                 DB::rollBack();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'This slot is in the past.',
                 ], 422);
             }
+
+            
 
             $appointment = Appointment::create([
                 'patient_id' => $patient->id,
@@ -67,18 +73,55 @@ class AppointmentController extends Controller
                 'reason' => $data['reason'] ?? null,
             ]);
 
-            $availability->update(['is_booked' => true]);
+            
+
+            $availability->update([
+                'is_booked' => true,
+            ]);
+
+         
 
             DB::commit();
+
+           
+            $appointment->load([
+                'doctor.user',
+                'patient.user',
+                'availability',
+            ]);
+
+           
+
+            UserNotification::create([
+                'user_id' => $appointment->doctor->user_id,
+                'title' => 'New Appointment',
+                'body' => 'You have received a new appointment request.',
+                'is_read' => false,
+            ]);
+
+          
+
+            UserNotification::create([
+                'user_id' => $appointment->patient->user_id,
+                'title' => 'Appointment Booked',
+                'body' => 'Your appointment has been booked successfully.',
+                'is_read' => false,
+            ]);
+
+          
 
             return response()->json([
                 'success' => true,
                 'message' => 'Appointment booked successfully.',
-                'data' => $appointment->load(['doctor.user', 'availability']),
+                'data' => $appointment,
             ], 201);
 
         } catch (\Exception $e) {
-            DB::rollBack();
+
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Something went wrong while booking the appointment.',
@@ -86,7 +129,7 @@ class AppointmentController extends Controller
         }
     }
 
-   
+
     public function index(Request $request): JsonResponse
     {
         $patient = $request->user()->patientProfile;
@@ -98,7 +141,11 @@ class AppointmentController extends Controller
             ], 404);
         }
 
-        $query = Appointment::with(['doctor.user', 'doctor.specialty', 'availability'])
+        $query = Appointment::with([
+            'doctor.user',
+            'doctor.specialty',
+            'availability',
+        ])
             ->where('patient_id', $patient->id);
 
         if ($request->filled('status')) {
@@ -113,7 +160,8 @@ class AppointmentController extends Controller
         ]);
     }
 
-   
+
+    
     public function confirm(Request $request, int $id): JsonResponse
     {
         $doctor = $request->user()->doctorProfile;
@@ -143,14 +191,20 @@ class AppointmentController extends Controller
             ], 422);
         }
 
-        $appointment->update(['status' => 'confirmed']);
+        $appointment->update([
+            'status' => 'confirmed',
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Appointment confirmed successfully.',
-            'data' => $appointment->load(['patient.user', 'availability']),
+            'data' => $appointment->load([
+                'patient.user',
+                'availability',
+            ]),
         ]);
     }
+
 
     
     public function reject(Request $request, int $id): JsonResponse
@@ -182,99 +236,105 @@ class AppointmentController extends Controller
             ], 422);
         }
 
-        $appointment->update(['status' => 'rejected']);
+        $appointment->update([
+            'status' => 'rejected',
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Appointment rejected.',
-            'data' => $appointment->load(['patient.user', 'availability']),
+            'data' => $appointment->load([
+                'patient.user',
+                'availability',
+            ]),
         ]);
     }
+
 
     
 public function cancel(Request $request, int $id): JsonResponse
-{
-    $user = $request->user();
+    {
+        $user = $request->user();
 
-    $appointment = Appointment::with('availability')->find($id);
+        $appointment = Appointment::with('availability')->find($id);
 
-    if (!$appointment) {
+        if (!$appointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Appointment not found.',
+            ], 404);
+        }
+
+        $isOwningPatient = $user->patientProfile && $appointment->patient_id === $user->patientProfile->id;
+        $isOwningDoctor = $user->doctorProfile && $appointment->doctor_id === $user->doctorProfile->id;
+
+        if (!$isOwningPatient && !$isOwningDoctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to cancel this appointment.',
+            ], 403);
+        }
+
+        if (in_array($appointment->status, ['completed', 'cancelled', 'rejected'])) {
+            return response()->json([
+                'success' => false,
+                'message' => "This appointment can no longer be cancelled. Current status: {$appointment->status}.",
+            ], 422);
+        }
+
+        $cancelledBy = $isOwningDoctor ? 'doctor' : 'patient';
+
+        DB::transaction(function () use ($appointment, $cancelledBy) {
+            $appointment->update([
+                'status' => 'cancelled',
+                'cancelled_by' => $cancelledBy,
+            ]);
+
+            $appointment->availability?->update(['is_booked' => false]);
+        });
+
         return response()->json([
-            'success' => false,
-            'message' => 'Appointment not found.',
-        ], 404);
-    }
-
-    $isOwningPatient = $user->patientProfile && $appointment->patient_id === $user->patientProfile->id;
-    $isOwningDoctor = $user->doctorProfile && $appointment->doctor_id === $user->doctorProfile->id;
-
-    if (!$isOwningPatient && !$isOwningDoctor) {
-        return response()->json([
-            'success' => false,
-            'message' => 'You are not authorized to cancel this appointment.',
-        ], 403);
-    }
-
-    if (in_array($appointment->status, ['completed', 'cancelled', 'rejected'])) {
-        return response()->json([
-            'success' => false,
-            'message' => "This appointment can no longer be cancelled. Current status: {$appointment->status}.",
-        ], 422);
-    }
-
-    $cancelledBy = $isOwningDoctor ? 'doctor' : 'patient';
-
-    DB::transaction(function () use ($appointment, $cancelledBy) {
-        $appointment->update([
-            'status' => 'cancelled',
-            'cancelled_by' => $cancelledBy,
+            'success' => true,
+            'message' => 'Appointment cancelled successfully.',
+            'data' => $appointment->fresh()->load(['patient.user', 'doctor.user', 'availability']),
         ]);
-
-        $appointment->availability?->update(['is_booked' => false]);
-    });
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Appointment cancelled successfully.',
-        'data' => $appointment->fresh()->load(['patient.user', 'doctor.user', 'availability']),
-    ]);
-}
-    
-  public function complete(Request $request, int $id): JsonResponse
-{
-    $doctor = $request->user()->doctorProfile;
-
-    if (!$doctor) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Doctor profile not found.',
-        ], 404);
     }
 
-    $appointment = Appointment::where('id', $id)
-        ->where('doctor_id', $doctor->id)
-        ->first();
+    public function complete(Request $request, int $id): JsonResponse
+    {
+        $doctor = $request->user()->doctorProfile;
 
-    if (!$appointment) {
+        if (!$doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Doctor profile not found.',
+            ], 404);
+        }
+
+        $appointment = Appointment::where('id', $id)
+            ->where('doctor_id', $doctor->id)
+            ->first();
+
+        if (!$appointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Appointment not found.',
+            ], 404);
+        }
+
+        if ($appointment->status !== 'confirmed') {
+            return response()->json([
+                'success' => false,
+                'message' => "Only confirmed appointments can be completed. Current status: {$appointment->status}.",
+            ], 422);
+        }
+
+        $appointment->update(['status' => 'completed']);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Appointment not found.',
-        ], 404);
+            'success' => true,
+            'message' => 'Appointment marked as completed.',
+            'data' => $appointment->load(['patient.user', 'availability']),
+        ]);
     }
-
-    if ($appointment->status !== 'confirmed') {
-        return response()->json([
-            'success' => false,
-            'message' => "Only confirmed appointments can be completed. Current status: {$appointment->status}.",
-        ], 422);
-    }
-
-    $appointment->update(['status' => 'completed']);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Appointment marked as completed.',
-        'data' => $appointment->load(['patient.user', 'availability']),
-    ]);
-}
 }

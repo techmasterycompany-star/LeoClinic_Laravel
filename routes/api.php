@@ -17,7 +17,8 @@ use App\Http\Controllers\Api\Doctor\ScheduleController;
 use App\Http\Controllers\Api\PatientProfileController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\AppointmentController;
-
+use App\Http\Controllers\Api\RatingController;
+use App\Http\Controllers\Api\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,23 +26,27 @@ use App\Http\Controllers\Api\AppointmentController;
 |--------------------------------------------------------------------------
 */
 
-
-
-
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
 Route::prefix('auth')->group(function () {
+
     Route::post('/register', [AuthController::class, 'register']);
+
     Route::post('/login', [AuthController::class, 'login']);
-    Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+
+    Route::middleware('auth:sanctum')
+        ->post('/logout', [AuthController::class, 'logout']);
+
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
     Route::post('/verify-reset-code', [AuthController::class, 'verifyResetCode']);
+
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -59,36 +64,31 @@ Route::prefix('admin')
         Route::put('/specialties/{specialty}', [SpecialtyController::class, 'update']);
         Route::delete('/specialties/{specialty}', [SpecialtyController::class, 'destroy']);
 
-
         // Manage Locations
         Route::get('/locations', [LocationController::class, 'index']);
         Route::post('/locations', [LocationController::class, 'store']);
         Route::put('/locations/{location}', [LocationController::class, 'update']);
         Route::delete('/locations/{location}', [LocationController::class, 'destroy']);
 
-
         // Approve / Reject Doctors
         Route::get('/doctors/pending', [DoctorApprovalController::class, 'pending']);
         Route::patch('/doctors/{doctorProfile}/approve', [DoctorApprovalController::class, 'approve']);
         Route::patch('/doctors/{doctorProfile}/reject', [DoctorApprovalController::class, 'reject']);
 
-
         Route::get('/patients/pending', [PatientApprovalController::class, 'pending']);
         Route::patch('/patients/{patientProfile}/approve', [PatientApprovalController::class, 'approve']);
         Route::patch('/patients/{patientProfile}/reject', [PatientApprovalController::class, 'reject']);
 
-
         Route::patch('/users/{user}/block', [UserBlockController::class, 'block']);
         Route::patch('/users/{user}/unblock', [UserBlockController::class, 'unblock']);
         Route::patch('/users/{user}/status', [UserBlockController::class, 'updateStatus']);
-
 
         Route::get('/users', [AdminUserController::class, 'index']);
     });
 
 /*
 |--------------------------------------------------------------------------
-| Doctor Routes
+| Doctor Profile / Locations / Availability Routes
 |--------------------------------------------------------------------------
 */
 
@@ -110,26 +110,61 @@ Route::prefix('doctor')
         Route::delete('/availabilities/{availability}', [AvailabilityController::class, 'destroy']);
 
         Route::get('/schedule', [ScheduleController::class, 'index']);
-
-
     });
 
+/*
+|--------------------------------------------------------------------------
+| Patient Routes
+|--------------------------------------------------------------------------
+*/
 
+Route::middleware('auth:sanctum')
+    ->prefix('patient')
+    ->group(function () {
 
-Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
-    Route::get('/profile', [PatientProfileController::class, 'show']);
-    Route::put('/profile', [PatientProfileController::class, 'update']);
-    Route::get('/doctors', [DoctorController::class, 'index']);
-    Route::get('/doctors/{id}', [DoctorController::class, 'show']);
-    Route::post('/appointments', [AppointmentController::class, 'store']);
-    Route::get('/appointments', [AppointmentController::class, 'index']);
-});
+        Route::get('/profile', [PatientProfileController::class, 'show']);
+        Route::put('/profile', [PatientProfileController::class, 'update']);
 
-Route::middleware('auth:sanctum')->prefix('doctor')->group(function () {
-    Route::put('/appointments/{id}/confirm', [AppointmentController::class, 'confirm']);
-    Route::put('/appointments/{id}/reject', [AppointmentController::class, 'reject']);
-    Route::put('/appointments/{id}/complete', [AppointmentController::class, 'complete']);
-});
+        Route::get('/doctors', [DoctorController::class, 'index']);
+        Route::get('/doctors/{id}', [DoctorController::class, 'show']);
+        Route::get('/doctors/{id}/reviews', [DoctorController::class, 'reviews']);
 
+        Route::post('/appointments', [AppointmentController::class, 'store']);
+        Route::get('/appointments', [AppointmentController::class, 'index']);
 
-Route::middleware('auth:sanctum')->put('/appointments/{id}/cancel', [AppointmentController::class, 'cancel']);
+        Route::post('/appointments/{id}/rating', [RatingController::class, 'store']);
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Doctor Appointment Actions
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:sanctum')
+    ->prefix('doctor')
+    ->group(function () {
+
+        Route::put('/appointments/{id}/confirm', [AppointmentController::class, 'confirm']);
+        Route::put('/appointments/{id}/reject', [AppointmentController::class, 'reject']);
+        Route::put('/appointments/{id}/complete', [AppointmentController::class, 'complete']);
+
+        Route::get('/{doctorId}/average-rating', [RatingController::class, 'averageRating']);
+    });
+
+Route::middleware('auth:sanctum')
+    ->put('/appointments/{id}/cancel', [AppointmentController::class, 'cancel']);
+
+/*
+|--------------------------------------------------------------------------
+| Notifications
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:sanctum')
+    ->prefix('notifications')
+    ->group(function () {
+
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+    });
