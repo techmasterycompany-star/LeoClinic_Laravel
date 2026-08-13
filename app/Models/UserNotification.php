@@ -13,8 +13,10 @@ class UserNotification extends Model
 
     protected $fillable = [
         'user_id',
+        'appointment_id',
         'title',
         'body',
+        'type', // booking, reminder, cancellation
         'is_read',
     ];
 
@@ -25,5 +27,10 @@ class UserNotification extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
     }
 }
