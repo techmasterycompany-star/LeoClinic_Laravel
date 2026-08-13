@@ -168,3 +168,10 @@ Route::middleware('auth:sanctum')
         Route::get('/', [NotificationController::class, 'index']);
         Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
     });
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+
+});

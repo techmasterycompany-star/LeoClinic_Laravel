@@ -9,22 +9,27 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
+  public function up(): void
 {
     Schema::create('notifications', function (Blueprint $table) {
-
         $table->id();
 
         $table->foreignId('user_id')
             ->constrained()
             ->cascadeOnDelete();
 
-        $table->string('title');
+        $table->foreignId('appointment_id')
+            ->nullable()
+            ->constrained('appointments')
+            ->cascadeOnDelete();
 
+        $table->string('title');
         $table->text('body');
+        
+        $table->enum('type', ['booking', 'reminder', 'cancellation'])
+            ->default('booking');
 
         $table->boolean('is_read')->default(false);
-
         $table->timestamps();
     });
 }
