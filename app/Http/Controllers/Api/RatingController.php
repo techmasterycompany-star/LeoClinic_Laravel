@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class RatingController extends Controller
 {
-    
+   
     public function store(Request $request, int $appointmentId): JsonResponse
     {
         $data = $request->validate([
@@ -64,5 +64,21 @@ class RatingController extends Controller
             'message' => 'Thank you for your feedback.',
             'data' => $rating,
         ], 201);
+    }
+
+
+    
+    public function averageRating(int $doctorId): JsonResponse
+    {
+        
+        $averageRating = Rating::whereHas('appointment', function ($query) use ($doctorId) {
+            $query->where('doctor_id', $doctorId);
+        })->avg('rating');
+
+        return response()->json([
+            'success' => true,
+            'doctor_id' => $doctorId,
+            'average_rating' => round($averageRating ?? 0, 2),
+        ]);
     }
 }
