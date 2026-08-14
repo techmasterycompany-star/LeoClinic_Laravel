@@ -128,4 +128,5 @@ Route::middleware('auth:sanctum')->prefix('patient')->group(function () {
     Route::get('/profile', [PatientProfileController::class, 'show']);
     Route::put('/profile', [PatientProfileController::class, 'update']);
     Route::get('/doctors', [DoctorController::class, 'index']);
+    Route::get('/doctors/{id}', [DoctorController::class, 'show']);    
 });

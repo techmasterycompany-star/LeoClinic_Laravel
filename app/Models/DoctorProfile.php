@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class DoctorProfile extends Model
 {
@@ -49,4 +50,15 @@ class DoctorProfile extends Model
     {
         return $this->hasMany(Appointment::class, 'doctor_id');
     }
+    public function ratings(): HasManyThrough
+{
+    return $this->hasManyThrough(
+        Rating::class,
+        Appointment::class,
+        'doctor_id',
+        'appointment_id',
+        'id',
+        'id'
+    );
+}
 }
