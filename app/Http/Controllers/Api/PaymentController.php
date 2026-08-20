@@ -16,8 +16,7 @@ class PaymentController extends Controller
         $data = $request->validate([
             'appointment_id' => 'required|integer|exists:appointments,id',
             'amount' => 'required|numeric|min:0.01',
-            'payment_method' => 'required|in:credit_card,debit_card,cash,bank_transfer',
-        ]);
+            'payment_method' => 'required|in:cash,card,wallet',        ]);
 
         $patient = $request->user()->patientProfile;
 
@@ -62,7 +61,7 @@ class PaymentController extends Controller
                 'doctor_id' => $appointment->doctor_id,
                 'amount' => $data['amount'],
                 'payment_method' => $data['payment_method'],
-                'status' => 'completed',
+                'status' => 'paid', 
                 'paid_at' => now(),
             ]);
 
@@ -75,11 +74,13 @@ class PaymentController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong while processing payment.',
-            ], 500);
+             DB::rollBack();
+
+             return response()->json([
+            'success' => false,
+            'message' => 'Something went wrong while processing payment.',
+        ], 500);
+
         }
     }
 

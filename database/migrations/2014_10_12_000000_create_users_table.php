@@ -23,6 +23,8 @@ return new class extends Migration
             $table->enum('role', ['admin', 'doctor', 'patient']);
 
             $table->boolean('is_blocked')->default(false);
+            
+            $table->timestamp('email_verified_at')->nullable();
 
             $table->timestamps();
         });

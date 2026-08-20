@@ -27,12 +27,13 @@ return new class extends Migration
             ->constrained('availabilities')
             ->cascadeOnDelete();
 
-        $table->enum('status', [
-            'pending',
-            'confirmed',
-            'completed',
-            'cancelled'
-        ])->default('pending');
+      $table->enum('status', [
+             'pending',
+             'confirmed',
+             'completed',
+             'cancelled',
+             'rejected'
+         ])->default('pending');
 
         $table->text('reason')->nullable();
 
