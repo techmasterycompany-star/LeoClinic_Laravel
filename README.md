@@ -157,9 +157,6 @@ app/
 routes/
 └── api.php                                     # all API route definitions, grouped by auth/role
 
-tests/
-└── Feature/                                    # end-to-end API tests
-
 database/
 └── migrations/
 ```
@@ -262,8 +259,10 @@ Validation errors return `422` with a `errors` object (Laravel's default validat
 
 ## Testing
 
-An end-to-end feature test (`tests/Feature/FullApiFlowTest.php`) walks through the entire lifecycle — admin setup, specialty/location creation, doctor onboarding and approval, patient registration, booking, confirmation, completion, rating, and payment — against an isolated, auto-refreshed test database.
+API testing is done manually via the included Postman collection (`Appointment-Booking-API.postman_collection.json`), which covers all 55 endpoints across 17 folders.
 
-```bash
-php artisan test
-```
+1. Import the collection into Postman and set the `base_url` variable to your local server (e.g. `http://127.0.0.1:8000/api`).
+2. Run **Auth → Register/Login** first — a test script on these requests automatically saves the returned token to the `token` collection variable, which every other request reuses as its Bearer token.
+3. Follow the dependency order: create an admin account manually (see [Installation](#installation)) → create a specialty and location as admin → register and approve a doctor → complete the doctor's profile and add availability → register a patient → book, confirm, complete, rate, and pay for an appointment.
+
+See the [API Documentation](https://documenter.getpostman.com/view/57135921/2sBYApzYf5) section above for the full endpoint list and required roles.
